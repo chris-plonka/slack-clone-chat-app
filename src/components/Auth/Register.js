@@ -31,6 +31,13 @@ export default function Register() {
     reset: resetPasswordConfirmation
   } = useInput("");
   const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleErrors = inputName => {
+    return errors.some(error => error.message.toLowerCase().includes(inputName))
+      ? "error"
+      : "";
+  };
 
   const isFormEmpty = () => {
     return (
@@ -45,6 +52,7 @@ export default function Register() {
     if (password.length < 6 || passwordConfirmation.length < 6) {
       return false;
     } else if (password !== passwordConfirmation) {
+      console.log("password not same as passwordConfirmation");
       return false;
     } else {
       return true;
@@ -63,7 +71,7 @@ export default function Register() {
       error = { message: "Fill in all fields" };
       setErrors(errors.concat(error));
       return false;
-    } else if (isPasswordValid()) {
+    } else if (!isPasswordValid()) {
       error = { message: "Password is invalid" };
       setErrors(errors.concat(error));
       return false;
@@ -76,17 +84,24 @@ export default function Register() {
     e.preventDefault();
 
     if (isFormValid()) {
+      setErrors([]);
+      setLoading(true);
       firebase
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(createdUser => {
           console.log(createdUser);
+          setLoading(false);
           resetUsername();
           resetEmail();
           resetPassword();
           resetPasswordConfirmation();
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.log(err);
+          setLoading(false);
+          setErrors([err]);
+        });
     }
   };
 
@@ -106,6 +121,7 @@ export default function Register() {
               iconPosition="left"
               placeholder="Username"
               {...bindUsername}
+              className={handleErrors("username")}
               type="text"
             />
             <Form.Input
@@ -115,6 +131,7 @@ export default function Register() {
               iconPosition="left"
               placeholder="Email Address"
               {...bindEmail}
+              className={handleErrors("email")}
               type="email"
             />
             <Form.Input
@@ -124,6 +141,7 @@ export default function Register() {
               iconPosition="left"
               placeholder="Password"
               {...bindPassword}
+              className={handleErrors("password")}
               type="password"
             />
             <Form.Input
@@ -133,10 +151,17 @@ export default function Register() {
               iconPosition="left"
               placeholder="Password Confirm"
               {...bindPasswordConfirmation}
+              className={handleErrors("password")}
               type="password"
             />
 
-            <Button color="orange" fluid size="large">
+            <Button
+              disabled={loading}
+              className={loading ? "loading" : ""}
+              color="orange"
+              fluid
+              size="large"
+            >
               Submit
             </Button>
           </Segment>
