@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import md5 from "md5";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import {
@@ -32,6 +33,7 @@ export default function Register() {
   } = useInput("");
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [usersRef, setUsersRef] = useState(firebase.database().ref("users"));
 
   const handleErrors = inputName => {
     return errors.some(error => error.message.toLowerCase().includes(inputName))
@@ -80,6 +82,13 @@ export default function Register() {
     }
   };
 
+  const saveUser = createdUser => {
+    return usersRef.child(createdUser.user.uid).set({
+      name: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL
+    });
+  };
+
   const handleSubmit = e => {
     e.preventDefault();
 
@@ -90,12 +99,35 @@ export default function Register() {
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(createdUser => {
-          console.log(createdUser);
-          setLoading(false);
-          resetUsername();
-          resetEmail();
-          resetPassword();
-          resetPasswordConfirmation();
+          //console.log(createdUser);
+          createdUser.user
+            .updateProfile({
+              displayName: username,
+              photoURL: `http://gravatar.com/avatar/${md5(
+                createdUser.user.email
+              )}?d=identicon`
+            })
+            .then(() => {
+              saveUser(createdUser)
+                .then(() => {
+                  console.log("user saved");
+                  setLoading(false);
+                  resetUsername();
+                  resetEmail();
+                  resetPassword();
+                  resetPasswordConfirmation();
+                })
+                .catch(err => {
+                  console.log(err);
+                  setLoading(false);
+                  setErrors([err]);
+                });
+            })
+            .catch(err => {
+              console.log(err);
+              setLoading(false);
+              setErrors([err]);
+            });
         })
         .catch(err => {
           console.log(err);
