@@ -1,3 +1,23 @@
 import combineReducers from "../utils/combineReducers";
+import * as actionTypes from "../action/types";
 
-export default combineReducers({});
+const initialState = {
+  currentUser: null,
+  isLoading: true
+};
+
+const userReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case actionTypes.SET_USER:
+      return {
+        currentUser: action.payload.currentUser,
+        isLoading: false
+      };
+    default:
+      return state;
+  }
+};
+
+export default combineReducers({
+  user: userReducer
+});
