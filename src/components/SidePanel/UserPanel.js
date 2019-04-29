@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import firebase from "../../firebase";
 import Store from "../../Store";
-import { Grid, Header, Icon, Dropdown } from "semantic-ui-react";
+import { Grid, Header, Icon, Dropdown, Image } from "semantic-ui-react";
 
 export default function UserPanel() {
   const { state, dispatch } = useContext(Store);
@@ -43,14 +43,23 @@ export default function UserPanel() {
             <Icon name="code" />
             <Header.Content>DevChat</Header.Content>
           </Header>
+          {/* User Dropdown */}
+          <Header style={{ padding: "0.25em" }} as="h4" inverted>
+            <Dropdown
+              trigger={
+                <span>
+                  <Image
+                    src={state.user.currentUser.photoURL}
+                    spaced="right"
+                    avatar
+                  />
+                  {state.user.currentUser.displayName}
+                </span>
+              }
+              options={dropdownOptions()}
+            />
+          </Header>
         </Grid.Row>
-        {/* User Dropdown */}
-        <Header style={{ padding: "0.25em" }} as="h4" inverted>
-          <Dropdown
-            trigger={<span>{state.user.currentUser.displayName}</span>}
-            options={dropdownOptions()}
-          />
-        </Header>
       </Grid.Column>
     </Grid>
   );
