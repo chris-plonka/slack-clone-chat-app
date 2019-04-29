@@ -7,7 +7,7 @@ import Register from "./components/Auth/Register";
 import * as serviceWorker from "./serviceWorker";
 import firebase from "./firebase";
 import history from "./history";
-import { setUser } from "./action";
+import { setUser, clearUser } from "./action";
 import Store, { StoreProvider } from "./Store";
 
 import "semantic-ui-css/semantic.min.css";
@@ -23,26 +23,31 @@ const Root = () => {
         console.log("login ok");
         dispatch(setUser(user));
         history.push("/");
+      } else {
+        history.push("/login");
+        dispatch(clearUser());
       }
     });
   }, []);
 
-  return state.user.loading ? (
+  console.log(state);
+
+  return state.user.isLoading ? (
     <Spinner />
   ) : (
-    <Router history={history}>
-      <Switch>
-        <Route exact path="/" component={App} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-      </Switch>
-    </Router>
+    <Switch>
+      <Route exact path="/" component={App} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+    </Switch>
   );
 };
 
 ReactDOM.render(
   <StoreProvider>
-    <Root />
+    <Router history={history}>
+      <Root />
+    </Router>
   </StoreProvider>,
   document.getElementById("root")
 );
