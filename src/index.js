@@ -6,6 +6,7 @@ import Register from "./components/Auth/Register";
 import * as serviceWorker from "./serviceWorker";
 import firebase from "./firebase";
 import history from "./history";
+import Store, { StoreProvider } from "./Store";
 
 import "semantic-ui-css/semantic.min.css";
 
@@ -22,13 +23,15 @@ const Root = () => {
   }, []);
 
   return (
-    <Router history={history}>
-      <Switch>
-        <Route exact path="/" component={App} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-      </Switch>
-    </Router>
+    <StoreProvider>
+      <Router history={history}>
+        <Switch>
+          <Route exact path="/" component={App} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+        </Switch>
+      </Router>
+    </StoreProvider>
   );
 };
 
