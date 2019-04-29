@@ -20,7 +20,6 @@ const Root = () => {
   useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        console.log("login ok");
         dispatch(setUser(user));
         history.push("/");
       } else {
@@ -29,8 +28,6 @@ const Root = () => {
       }
     });
   }, []);
-
-  console.log(state);
 
   return state.user.isLoading ? (
     <Spinner />
