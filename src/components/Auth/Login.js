@@ -63,6 +63,9 @@ export default function Login() {
         .signInWithEmailAndPassword(email, password)
         .then(signedUser => {
           console.log(signedUser);
+          setLoading(false);
+          resetEmail();
+          resetPassword();
         })
         .catch(err => {
           console.log(err);
