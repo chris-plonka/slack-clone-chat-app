@@ -1,6 +1,7 @@
 import React from "react";
 import UserPanel from "./UserPanel";
 import Channels from "./Channels";
+import DirectMessages from "./DirectMessages";
 import { Menu } from "semantic-ui-react";
 
 export default function SidePanel() {
@@ -14,6 +15,7 @@ export default function SidePanel() {
     >
       <UserPanel />
       <Channels />
+      <DirectMessages />
     </Menu>
   );
 }
