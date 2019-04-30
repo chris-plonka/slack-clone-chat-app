@@ -3,6 +3,7 @@ import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
 import { Segment, Input, Button } from "semantic-ui-react";
+import FileModal from "./FileModal";
 
 export default function MessageForm({ messagesRef }) {
   const { state, dispatch } = useContext(Store);
@@ -12,11 +13,20 @@ export default function MessageForm({ messagesRef }) {
   );
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState(false);
 
   const handleErrors = inputName => {
     return errors.some(error => error.message.toLowerCase().includes(inputName))
       ? "error"
       : "";
+  };
+
+  const openModal = () => {
+    setModal(true);
+  };
+
+  const closeModal = () => {
+    setModal(false);
   };
 
   const createMessage = () => {
@@ -92,7 +102,9 @@ export default function MessageForm({ messagesRef }) {
           content="Upload Media"
           labelPosition="right"
           icon="cloud upload"
+          onClick={openModal}
         />
+        <FileModal modal={modal} closeModal={closeModal} />
       </Button.Group>
     </Segment>
   );
