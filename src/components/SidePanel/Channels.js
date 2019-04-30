@@ -1,4 +1,4 @@
-import React, { useState, useContext, Fragment } from "react";
+import React, { useState, useContext, useEffect, Fragment } from "react";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
@@ -23,6 +23,37 @@ export default function Channels() {
   const [channelsRef, setChannelsRef] = useState(
     firebase.database().ref("channels")
   );
+
+  useEffect(() => {
+    addListeners();
+  }, []);
+
+  const addListeners = () => {
+    let loadedChannels = [];
+    channelsRef.on("child_added", snap => {
+      // mutates the array, but won't trigger a render
+      loadedChannels.push(snap.val());
+      //creates a new array, which should trigger a render
+      const loadedChannelsClone = [...loadedChannels];
+      setChannels(loadedChannelsClone);
+    });
+  };
+
+  const displayChannels = channels => {
+    return (
+      channels.length > 0 &&
+      channels.map(channel => (
+        <Menu.Item
+          key={channel.id}
+          onClick={() => console.log(channel)}
+          name={channel.name}
+          style={{ opacity: 0.7 }}
+        >
+          # {channel.name}
+        </Menu.Item>
+      ))
+    );
+  };
 
   const closeModal = () => {
     setModal(false);
@@ -98,6 +129,7 @@ export default function Channels() {
           <Icon link name="add" onClick={openModal} />
         </Menu.Item>
         {/* channels */}
+        {displayChannels(channels)}
       </Menu.Menu>
 
       {/* Add Channel Modal */}
