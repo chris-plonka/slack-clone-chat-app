@@ -24,12 +24,16 @@ export default function Messages() {
     }
 
     return () => {
-      removeMessageListeners();
+      removeListeners();
     };
   }, [state.user.currentUser, state.channel.currentChannel]);
 
   const addListeners = channelId => {
     addMessageListener(channelId);
+  };
+
+  const removeListeners = () => {
+    removeMessageListeners();
   };
 
   const addMessageListener = channelId => {
@@ -40,24 +44,26 @@ export default function Messages() {
       //creates a new array, which should trigger a render
       const loadedMessagesClone = [...loadedMessages];
       setMessages(loadedMessagesClone);
-      console.log(loadedMessagesClone);
       setMessagesLoading(false);
     });
   };
 
   const removeMessageListeners = () => {
+    setMessages([]);
     messagesRef.off();
   };
 
-  const displayMessages = messages =>
-    messages.length > 0 &&
-    messages.map(message => (
-      <Message
-        key={message.timestamp}
-        message={message}
-        user={state.user.currentUser}
-      />
-    ));
+  const displayMessages = messages => {
+    if (messages.length > 0) {
+      return messages.map(message => (
+        <Message
+          key={message.timestamp}
+          message={message}
+          user={state.user.currentUser}
+        />
+      ));
+    }
+  };
 
   return (
     <Fragment>

@@ -8,7 +8,7 @@ const isOwnMessage = (message, user) => {
 
 const timeFromNow = timestamp => moment(timestamp).fromNow();
 
-export default function Message({ key, message, user }) {
+export default function Message({ message, user }) {
   return (
     <Comment>
       <Comment.Avatar src={message.user.avatar} />
