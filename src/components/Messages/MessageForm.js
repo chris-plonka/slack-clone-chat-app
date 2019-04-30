@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
@@ -6,6 +6,7 @@ import { Segment, Input, Button } from "semantic-ui-react";
 
 export default function MessageForm({ messagesRef }) {
   const { state, dispatch } = useContext(Store);
+  const inputMessage = useRef(null);
   const { value: message, bind: bindMessage, reset: resetMessage } = useInput(
     ""
   );
@@ -43,12 +44,14 @@ export default function MessageForm({ messagesRef }) {
           setLoading(false);
           resetMessage();
           setErrors([]);
+          inputMessage.current.focus();
         })
         .catch(err => {
           console.error(err);
           setLoading(false);
           const newError = [...errors].concat(err);
           setErrors(newError);
+          inputMessage.current.focus();
         });
     } else {
       const err = {
@@ -57,6 +60,7 @@ export default function MessageForm({ messagesRef }) {
       console.error(err);
       const newError = [...errors].concat(err);
       setErrors(newError);
+      inputMessage.current.focus();
     }
   };
 
@@ -65,12 +69,14 @@ export default function MessageForm({ messagesRef }) {
       <Input
         fluid
         name="message"
+        ref={inputMessage}
         {...bindMessage}
         className={handleErrors("message")}
         style={{ marginBottom: "0.7em" }}
         label={<Button icon={"add"} />}
         labelPosition="left"
         placeholder="write your message"
+        autofocus
       />
       <Button.Group icon widths="2">
         <Button
@@ -78,6 +84,7 @@ export default function MessageForm({ messagesRef }) {
           content="Add Reply"
           labelPosition="left"
           icon="edit"
+          disabled={loading}
           onClick={sendMessage}
         />
         <Button
