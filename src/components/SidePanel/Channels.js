@@ -23,9 +23,7 @@ export default function Channels() {
   const [loading, setLoading] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
   const [activeChannel, setActiveChannel] = useState("");
-  const [channelsRef, setChannelsRef] = useState(
-    firebase.database().ref("channels")
-  );
+  const [channelsRef] = useState(firebase.database().ref("channels"));
 
   useEffect(() => {
     addListeners();

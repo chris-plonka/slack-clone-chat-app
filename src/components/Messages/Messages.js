@@ -8,10 +8,8 @@ import MessageForm from "./MessageForm";
 import Message from "./Message";
 
 export default function Messages() {
-  const { state, dispatch } = useContext(Store);
-  const [messagesRef, setMessagesRef] = useState(
-    firebase.database().ref("messages")
-  );
+  const { state } = useContext(Store);
+  const [messagesRef] = useState(firebase.database().ref("messages"));
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 

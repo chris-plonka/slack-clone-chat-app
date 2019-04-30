@@ -33,7 +33,7 @@ export default function Register() {
   } = useInput("");
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [usersRef, setUsersRef] = useState(firebase.database().ref("users"));
+  const [usersRef] = useState(firebase.database().ref("users"));
 
   const handleErrors = inputName => {
     return errors.some(error => error.message.toLowerCase().includes(inputName))

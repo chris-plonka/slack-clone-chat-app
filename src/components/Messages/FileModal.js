@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import mime from "mime-types";
-import { useInput } from "../../customHooks/useInput";
 import { Icon, Modal, Input, Button } from "semantic-ui-react";
 
 export default function FileModal({ modal, closeModal, uploadFile }) {
@@ -24,6 +23,7 @@ export default function FileModal({ modal, closeModal, uploadFile }) {
         const metadata = { contentType: mime.lookup(file.name) };
         uploadFile(file, metadata);
         closeModal();
+        clearFile();
       }
     }
   };

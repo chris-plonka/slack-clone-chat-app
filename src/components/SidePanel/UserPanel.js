@@ -4,7 +4,7 @@ import Store from "../../Store";
 import { Grid, Header, Icon, Dropdown, Image } from "semantic-ui-react";
 
 export default function UserPanel() {
-  const { state, dispatch } = useContext(Store);
+  const { state } = useContext(Store);
 
   const handleSignout = () => {
     firebase

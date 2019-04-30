@@ -8,7 +8,7 @@ import FileModal from "./FileModal";
 import ProgressBar from "./ProgressBar";
 
 export default function MessageForm({ messagesRef }) {
-  const { state, dispatch } = useContext(Store);
+  const { state } = useContext(Store);
   const inputMessage = useRef(null);
   const { value: message, bind: bindMessage, reset: resetMessage } = useInput(
     ""
@@ -19,7 +19,7 @@ export default function MessageForm({ messagesRef }) {
   const [uploadState, setUploadState] = useState("");
   const [uploadTask, setUploadTask] = useState(null);
   const [precentUploaded, setPrecentUploaded] = useState(0);
-  const [storageRef, setStorageRef] = useState(firebase.storage().ref());
+  const [storageRef] = useState(firebase.storage().ref());
 
   const handleUploadError = err => {
     console.error(err);
