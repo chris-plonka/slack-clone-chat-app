@@ -1,4 +1,5 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
+import uuidv4 from "uuid/v4";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
@@ -14,6 +15,64 @@ export default function MessageForm({ messagesRef }) {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(false);
+  const [uploadState, setUploadState] = useState("");
+  const [uploadTask, setUploadTask] = useState(null);
+  const [precentUploaded, setPrecentUploaded] = useState(0);
+  const [storageRef, setStorageRef] = useState(firebase.storage().ref());
+
+  useEffect(() => {
+    if (uploadTask !== null) {
+      uploadTask.task.on(
+        "state_changed",
+        snap => {
+          const precentUploadedLocal = Math.round(
+            (snap.bytesTransferred / snap.totalBytes) * 100
+          );
+          setPrecentUploaded(precentUploadedLocal);
+        },
+        err => {
+          console.error(err);
+          setErrors([...errors].concat(err));
+          setUploadState("error");
+          setUploadTask(null);
+        },
+        () => {
+          uploadTask.task.snapshot.ref
+            .getDownloadURL()
+            .then(downloadUrl => {
+              console.log(downloadUrl);
+              sendFileMessage(
+                downloadUrl,
+                uploadTask.ref,
+                uploadTask.pathToUpload
+              );
+            })
+            .catch(err => {
+              console.error(err);
+              setErrors([...errors].concat(err));
+              setUploadState("error");
+              setUploadTask(null);
+            });
+        }
+      );
+    }
+  }, [uploadTask]);
+
+  const sendFileMessage = (fileUrl, ref, pathToUpload) => {
+    ref
+      .child(pathToUpload)
+      .push()
+      .set(createMessage(fileUrl))
+      .then(() => {
+        setUploadState("done");
+      })
+      .catch(err => {
+        console.error(err);
+        setErrors([...errors].concat(err));
+        setUploadState("error");
+        setUploadTask(null);
+      });
+  };
 
   const handleErrors = inputName => {
     return errors.some(error => error.message.toLowerCase().includes(inputName))
@@ -30,13 +89,20 @@ export default function MessageForm({ messagesRef }) {
   };
 
   const uploadFile = (file, metadata) => {
-    console.log(file, metadata);
+    const pathToUpload = state.channel.currentChannel.id;
+    const filePath = `chat/public/${uuidv4()}`;
+
+    setUploadState("uploading");
+    setUploadTask({
+      task: storageRef.child(filePath).put(file, metadata),
+      pathToUpload,
+      ref: messagesRef
+    });
   };
 
-  const createMessage = () => {
+  const createMessage = (fileUrl = null) => {
     const { user } = state;
-    return {
-      content: message,
+    const messageObj = {
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       user: {
         id: user.currentUser.uid,
@@ -44,6 +110,13 @@ export default function MessageForm({ messagesRef }) {
         avatar: user.currentUser.photoURL
       }
     };
+    if (fileUrl !== null) {
+      messageObj["image"] = fileUrl;
+    } else {
+      messageObj["content"] = message;
+    }
+
+    return messageObj;
   };
 
   const sendMessage = () => {
