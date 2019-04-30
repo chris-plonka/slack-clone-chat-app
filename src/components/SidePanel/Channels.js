@@ -29,6 +29,7 @@ export default function Channels() {
 
   useEffect(() => {
     addListeners();
+    // Clean up the Listeners
     return () => {
       removeListeners();
     };
