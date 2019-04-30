@@ -5,6 +5,7 @@ import firebase from "../../firebase";
 import Store from "../../Store";
 import { Segment, Input, Button } from "semantic-ui-react";
 import FileModal from "./FileModal";
+import ProgressBar from "./ProgressBar";
 
 export default function MessageForm({ messagesRef }) {
   const { state, dispatch } = useContext(Store);
@@ -173,12 +174,16 @@ export default function MessageForm({ messagesRef }) {
           icon="cloud upload"
           onClick={openModal}
         />
-        <FileModal
-          modal={modal}
-          closeModal={closeModal}
-          uploadFile={uploadFile}
-        />
       </Button.Group>
+      <FileModal
+        modal={modal}
+        closeModal={closeModal}
+        uploadFile={uploadFile}
+      />
+      <ProgressBar
+        uploadState={uploadState}
+        precentUploaded={precentUploaded}
+      />
     </Segment>
   );
 }
