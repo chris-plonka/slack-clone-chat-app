@@ -20,6 +20,13 @@ export default function MessageForm({ messagesRef }) {
   const [precentUploaded, setPrecentUploaded] = useState(0);
   const [storageRef, setStorageRef] = useState(firebase.storage().ref());
 
+  const handleUploadError = err => {
+    console.error(err);
+    setErrors([...errors].concat(err));
+    setUploadState("error");
+    setUploadTask(null);
+  };
+
   useEffect(() => {
     if (uploadTask !== null) {
       uploadTask.task.on(
@@ -30,12 +37,7 @@ export default function MessageForm({ messagesRef }) {
           );
           setPrecentUploaded(precentUploadedLocal);
         },
-        err => {
-          console.error(err);
-          setErrors([...errors].concat(err));
-          setUploadState("error");
-          setUploadTask(null);
-        },
+        err => handleUploadError(err),
         () => {
           uploadTask.task.snapshot.ref
             .getDownloadURL()
@@ -47,12 +49,7 @@ export default function MessageForm({ messagesRef }) {
                 uploadTask.pathToUpload
               );
             })
-            .catch(err => {
-              console.error(err);
-              setErrors([...errors].concat(err));
-              setUploadState("error");
-              setUploadTask(null);
-            });
+            .catch(err => handleUploadError(err));
         }
       );
     }
@@ -66,12 +63,7 @@ export default function MessageForm({ messagesRef }) {
       .then(() => {
         setUploadState("done");
       })
-      .catch(err => {
-        console.error(err);
-        setErrors([...errors].concat(err));
-        setUploadState("error");
-        setUploadTask(null);
-      });
+      .catch(err => handleUploadError(err));
   };
 
   const handleErrors = inputName => {
