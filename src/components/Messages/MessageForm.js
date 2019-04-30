@@ -76,7 +76,7 @@ export default function MessageForm({ messagesRef }) {
         label={<Button icon={"add"} />}
         labelPosition="left"
         placeholder="write your message"
-        autofocus
+        autoFocus
       />
       <Button.Group icon widths="2">
         <Button
