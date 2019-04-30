@@ -169,6 +169,7 @@ export default function MessageForm({ messagesRef }) {
         />
         <Button
           color="teal"
+          disabled={uploadState === "uploading"}
           content="Upload Media"
           labelPosition="right"
           icon="cloud upload"
