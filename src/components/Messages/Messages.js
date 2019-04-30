@@ -16,6 +16,9 @@ export default function Messages() {
   const [messagesLoading, setMessagesLoading] = useState(true);
 
   const [numUniqueUsers, setNumUniqueUsers] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     const user = state.user.currentUser;
@@ -29,6 +32,10 @@ export default function Messages() {
       removeListeners();
     };
   }, [state.user.currentUser, state.channel.currentChannel]);
+
+  useEffect(() => {
+    handleSearchMessages();
+  }, [searchTerm]);
 
   const addListeners = channelId => {
     addMessageListener(channelId);
@@ -69,6 +76,27 @@ export default function Messages() {
     }
   };
 
+  const handleSearchChange = e => {
+    setSearchTerm(e.target.value);
+    setSearchLoading(true);
+  };
+
+  const handleSearchMessages = () => {
+    const channelMessages = [...messages];
+    const regex = new RegExp(searchTerm, "gi");
+    const searchResultsLocal = channelMessages.reduce((acc, message) => {
+      if (
+        (message.content && message.content.match(regex)) ||
+        message.user.name.match(regex)
+      ) {
+        acc.push(message);
+      }
+      return acc;
+    }, []);
+    setSearchResults(searchResultsLocal);
+    setTimeout(() => setSearchLoading(false), 1000);
+  };
+
   const countUniqueUsers = messages => {
     const uniqueUsers = messages.reduce((acc, message) => {
       if (!acc.includes(message.user.name)) {
@@ -87,13 +115,17 @@ export default function Messages() {
   return (
     <Fragment>
       <MessagesHeader
+        searchLoading={searchLoading}
+        handleSearchChange={handleSearchChange}
         numUniqueUsers={numUniqueUsers}
         channelName={displayChannelName(state.channel.currentChannel)}
       />
 
       <Segment>
         <Comment.Group className="messages">
-          {displayMessages(messages)}
+          {searchTerm
+            ? displayMessages(searchResults)
+            : displayMessages(messages)}
         </Comment.Group>
       </Segment>
 
