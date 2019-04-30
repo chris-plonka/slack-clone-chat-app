@@ -29,11 +29,18 @@ export default function Channels() {
 
   useEffect(() => {
     addListeners();
+    return () => {
+      removeListeners();
+    };
   }, []);
 
   useEffect(() => {
     setFirstChannel();
   }, [channels]);
+
+  const removeListeners = () => {
+    channelsRef.off();
+  };
 
   const addListeners = () => {
     let loadedChannels = [];
