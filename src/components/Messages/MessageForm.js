@@ -29,6 +29,10 @@ export default function MessageForm({ messagesRef }) {
     setModal(false);
   };
 
+  const uploadFile = (file, metadata) => {
+    console.log(file, metadata);
+  };
+
   const createMessage = () => {
     const { user } = state;
     return {
@@ -104,7 +108,11 @@ export default function MessageForm({ messagesRef }) {
           icon="cloud upload"
           onClick={openModal}
         />
-        <FileModal modal={modal} closeModal={closeModal} />
+        <FileModal
+          modal={modal}
+          closeModal={closeModal}
+          uploadFile={uploadFile}
+        />
       </Button.Group>
     </Segment>
   );
