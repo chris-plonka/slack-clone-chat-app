@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, Fragment } from "react";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
+import { setCurrentChannel } from "../../action";
 import { Menu, Icon, Modal, Form, Input, Button } from "semantic-ui-react";
 
 export default function Channels() {
@@ -39,13 +40,17 @@ export default function Channels() {
     });
   };
 
+  const changeChannel = channel => {
+    dispatch(setCurrentChannel(channel));
+  };
+
   const displayChannels = channels => {
     return (
       channels.length > 0 &&
       channels.map(channel => (
         <Menu.Item
           key={channel.id}
-          onClick={() => console.log(channel)}
+          onClick={() => changeChannel(channel)}
           name={channel.name}
           style={{ opacity: 0.7 }}
         >
