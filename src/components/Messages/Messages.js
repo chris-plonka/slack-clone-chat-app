@@ -15,6 +15,8 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 
+  const [numUniqueUsers, setNumUniqueUsers] = useState("");
+
   useEffect(() => {
     const user = state.user.currentUser;
     const channel = state.channel.currentChannel;
@@ -45,11 +47,13 @@ export default function Messages() {
       const loadedMessagesClone = [...loadedMessages];
       setMessages(loadedMessagesClone);
       setMessagesLoading(false);
+      countUniqueUsers(loadedMessagesClone);
     });
   };
 
   const removeMessageListeners = () => {
     setMessages([]);
+    countUniqueUsers([]);
     messagesRef.off();
   };
 
@@ -65,9 +69,27 @@ export default function Messages() {
     }
   };
 
+  const countUniqueUsers = messages => {
+    const uniqueUsers = messages.reduce((acc, message) => {
+      if (!acc.includes(message.user.name)) {
+        acc.push(message.user.name);
+      }
+      return acc;
+    }, []);
+
+    const plural = uniqueUsers.length > 1 || uniqueUsers.length === 0;
+    const numUniqueUsers = `${uniqueUsers.length} user${plural ? "s" : ""}`;
+    setNumUniqueUsers(numUniqueUsers);
+  };
+
+  const displayChannelName = channel => (channel ? `#${channel.name}` : "");
+
   return (
     <Fragment>
-      <MessagesHeader />
+      <MessagesHeader
+        numUniqueUsers={numUniqueUsers}
+        channelName={displayChannelName(state.channel.currentChannel)}
+      />
 
       <Segment>
         <Comment.Group className="messages">
