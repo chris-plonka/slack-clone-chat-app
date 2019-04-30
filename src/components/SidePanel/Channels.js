@@ -21,6 +21,8 @@ export default function Channels() {
   const [modal, setModal] = useState(false);
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [firstLoad, setFirstLoad] = useState(true);
+  const [activeChannel, setActiveChannel] = useState("");
   const [channelsRef, setChannelsRef] = useState(
     firebase.database().ref("channels")
   );
@@ -28,6 +30,10 @@ export default function Channels() {
   useEffect(() => {
     addListeners();
   }, []);
+
+  useEffect(() => {
+    setFirstChannel();
+  }, [channels]);
 
   const addListeners = () => {
     let loadedChannels = [];
@@ -41,7 +47,16 @@ export default function Channels() {
   };
 
   const changeChannel = channel => {
+    setActiveChannel(channel.id);
     dispatch(setCurrentChannel(channel));
+  };
+
+  const setFirstChannel = () => {
+    if (firstLoad && channels.length > 0) {
+      const firstChannel = channels[0];
+      changeChannel(firstChannel);
+      setFirstLoad(false);
+    }
   };
 
   const displayChannels = channels => {
@@ -53,6 +68,7 @@ export default function Channels() {
           onClick={() => changeChannel(channel)}
           name={channel.name}
           style={{ opacity: 0.7 }}
+          active={channel.id === activeChannel}
         >
           # {channel.name}
         </Menu.Item>
