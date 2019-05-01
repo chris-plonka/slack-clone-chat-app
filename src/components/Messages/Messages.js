@@ -8,6 +8,7 @@ import React, {
 import firebase from "../../firebase";
 import Store from "../../Store";
 import { useMutable } from "../../customHooks/useMutable";
+import { setUserPosts } from "../../action";
 import { Segment, Comment } from "semantic-ui-react";
 
 import MessagesHeader from "./MessagesHeader";
@@ -15,7 +16,7 @@ import MessageForm from "./MessageForm";
 import Message from "./Message";
 
 export default function Messages() {
-  const { state } = useContext(Store);
+  const { state, dispatch } = useContext(Store);
   const isClick = useRef(false);
   const [usersRef] = useState(firebase.database().ref("users"));
   const [messagesRef] = useState(firebase.database().ref("messages"));
@@ -130,6 +131,7 @@ export default function Messages() {
       setMessages(loadedMessagesClone);
       setMessagesLoading(false);
       countUniqueUsers(loadedMessagesClone);
+      countUserPosts(loadedMessagesClone);
     });
   };
 
@@ -141,6 +143,7 @@ export default function Messages() {
   const removeMessageListeners = () => {
     setMessages([]);
     countUniqueUsers([]);
+    countUserPosts([]);
     messagesRef.off();
   };
 
@@ -188,6 +191,22 @@ export default function Messages() {
     const plural = uniqueUsers.length > 1 || uniqueUsers.length === 0;
     const numUniqueUsers = `${uniqueUsers.length} user${plural ? "s" : ""}`;
     setNumUniqueUsers(numUniqueUsers);
+  };
+
+  const countUserPosts = messages => {
+    const userPosts = messages.reduce((acc, message) => {
+      if (message.user.name in acc) {
+        acc[message.user.name].count += 1;
+      } else {
+        acc[message.user.name] = {
+          avatar: message.user.avatar,
+          count: 1
+        };
+      }
+      return acc;
+    }, {});
+
+    dispatch(setUserPosts(userPosts));
   };
 
   const displayChannelName = channel => {
