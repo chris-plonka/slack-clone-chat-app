@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Store from "../../Store";
 import firebase from "../../firebase";
+import { setCurrentChannel, setPrivateChannel } from "../../action";
 import { Menu, Icon } from "semantic-ui-react";
 
 export default function DirectMessages() {
-  const { state } = useContext(Store);
+  const { state, dispatch } = useContext(Store);
   const [users, setUsers] = useState([]);
   const latestUsers = useRef(users);
   const firstLoad = useRef(true);
@@ -139,6 +140,22 @@ export default function DirectMessages() {
 
   const isUserOnline = user => user.status === "online";
 
+  const changeChannel = user => {
+    const channelId = getChannelId(user.uid);
+    const channelData = {
+      id: channelId,
+      name: user.name
+    };
+    dispatch(setCurrentChannel(channelData));
+    dispatch(setPrivateChannel(true));
+  };
+  const getChannelId = userId => {
+    const currentUserId = state.user.currentUser.uid;
+    return userId < currentUserId
+      ? `${userId}/${currentUserId}`
+      : `${currentUserId}/${userId}`;
+  };
+
   return (
     <Menu.Menu className="menu">
       <Menu.Item>
@@ -151,7 +168,7 @@ export default function DirectMessages() {
       {users.map(user => (
         <Menu.Item
           key={user.uid}
-          onClick={() => console.log(user)}
+          onClick={() => changeChannel(user)}
           style={{ ioacity: 0.7, fontStyle: "italic" }}
         >
           <Icon name="circle" color={isUserOnline(user) ? "green" : "red"} />@{" "}
