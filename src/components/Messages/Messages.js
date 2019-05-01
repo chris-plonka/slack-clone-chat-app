@@ -19,7 +19,9 @@ import Typing from "./Typing";
 export default function Messages() {
   const { state, dispatch } = useContext(Store);
   const isClick = useRef(false);
+  const [connectedRef] = useState(firebase.database().ref(".info/connected"));
   const [usersRef] = useState(firebase.database().ref("users"));
+  const [typingRef] = useState(firebase.database().ref("typing"));
   const [messagesRef] = useState(firebase.database().ref("messages"));
   const [privateMessagesRef] = useState(
     firebase.database().ref("privateMessages")
@@ -31,6 +33,7 @@ export default function Messages() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]);
 
   const {
     ref: isChannelStarredRef,
@@ -65,11 +68,13 @@ export default function Messages() {
 
   const addListeners = channelId => {
     addMessageListener(channelId);
+    addTypingListener(channelId);
   };
 
   const removeListeners = () => {
     removeMessageListeners();
     removeUserStarsListeners();
+    removeTypingListeners();
   };
 
   const getMessagesRef = () => {
@@ -121,6 +126,45 @@ export default function Messages() {
       });
   };
 
+  const addTypingListener = channelId => {
+    const currentUser = state.user.currentUser;
+    let typingUsersLocal = [];
+    if (channelId && currentUser) {
+      typingRef.child(channelId).on("child_added", snap => {
+        if (snap.key !== currentUser.uid) {
+          typingUsersLocal = typingUsersLocal.concat({
+            id: snap.key,
+            name: snap.val()
+          });
+          setTypingUsers([...typingUsersLocal]);
+        }
+      });
+      typingRef.child(channelId).on("child_removed", snap => {
+        const index = typingUsersLocal.findIndex(user => user.id === snap.key);
+        if (index !== -1) {
+          typingUsersLocal = typingUsersLocal.filter(
+            user => user.id !== snap.key
+          );
+          setTypingUsers([...typingUsersLocal]);
+        }
+      });
+
+      connectedRef.on("value", snap => {
+        if (snap.val() === true) {
+          typingRef
+            .child(channelId)
+            .child(currentUser.uid)
+            .onDisconnect()
+            .remove(err => {
+              if (err !== null) {
+                console.error(err);
+              }
+            });
+        }
+      });
+    }
+  };
+
   const addMessageListener = channelId => {
     let loadedMessages = [];
     let ref = getMessagesRef();
@@ -146,6 +190,11 @@ export default function Messages() {
     countUniqueUsers([]);
     countUserPosts([]);
     messagesRef.off();
+  };
+
+  const removeTypingListeners = () => {
+    setTypingUsers([]);
+    typingRef.off();
   };
 
   const displayMessages = messages => {
@@ -215,6 +264,15 @@ export default function Messages() {
     return channel ? `${isPrivateChannel ? "@" : "#"}${channel.name}` : "";
   };
 
+  const displayTypingUsers = typing =>
+    typing.length > 0 &&
+    typing.map(user => (
+      <div style={{ display: "flex", alignItems: "center" }} key={user.id}>
+        <span className="user__typing">{user.name} is typing</span>
+        <Typing />
+      </div>
+    ));
+
   return (
     <Fragment>
       <MessagesHeader
@@ -232,10 +290,7 @@ export default function Messages() {
           {searchTerm
             ? displayMessages(searchResults)
             : displayMessages(messages)}
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <span className="user__typing">users is typing</span>
-            <Typing />
-          </div>
+          {displayTypingUsers(typingUsers)}
         </Comment.Group>
       </Segment>
 
