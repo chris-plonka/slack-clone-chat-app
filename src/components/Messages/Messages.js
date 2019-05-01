@@ -1,6 +1,13 @@
-import React, { Fragment, useState, useContext, useEffect } from "react";
+import React, {
+  Fragment,
+  useState,
+  useContext,
+  useEffect,
+  useRef
+} from "react";
 import firebase from "../../firebase";
 import Store from "../../Store";
+import { useMutable } from "../../customHooks/useMutable";
 import { Segment, Comment } from "semantic-ui-react";
 
 import MessagesHeader from "./MessagesHeader";
@@ -9,6 +16,8 @@ import Message from "./Message";
 
 export default function Messages() {
   const { state } = useContext(Store);
+  const isClick = useRef(false);
+  const [usersRef] = useState(firebase.database().ref("users"));
   const [messagesRef] = useState(firebase.database().ref("messages"));
   const [privateMessagesRef] = useState(
     firebase.database().ref("privateMessages")
@@ -21,12 +30,25 @@ export default function Messages() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
+  const {
+    ref: isChannelStarredRef,
+    val: isChannelStarred,
+    set: setIsChannelStarred
+  } = useMutable(false);
+
+  useEffect(() => {
+    if (state.channel.currentChannel && isClick.current) {
+      starChannel();
+    }
+  }, [isChannelStarred]);
+
   useEffect(() => {
     const user = state.user.currentUser;
     const channel = state.channel.currentChannel;
 
     if (user && channel) {
       addListeners(channel.id);
+      addUserStarsListener(channel.id, user.uid);
     }
 
     return () => {
@@ -44,11 +66,56 @@ export default function Messages() {
 
   const removeListeners = () => {
     removeMessageListeners();
+    removeUserStarsListeners();
   };
 
   const getMessagesRef = () => {
     const isPrivateChannel = state.channel.isPrivateChannel;
     return isPrivateChannel ? privateMessagesRef : messagesRef;
+  };
+
+  const handleStar = () => {
+    setIsChannelStarred(c => !c);
+    isClick.current = true;
+  };
+
+  const starChannel = () => {
+    isClick.current = false;
+    if (isChannelStarredRef.current) {
+      usersRef.child(`${state.user.currentUser.uid}/starred`).update({
+        [state.channel.currentChannel.id]: {
+          name: state.channel.currentChannel.name,
+          details: state.channel.currentChannel.details,
+          createdBy: {
+            name: state.channel.currentChannel.createdBy.name,
+            avatar: state.channel.currentChannel.createdBy.avatar
+          }
+        }
+      });
+    } else {
+      usersRef
+        .child(`${state.user.currentUser.uid}/starred`)
+        .child(state.channel.currentChannel.id)
+        .remove(err => {
+          if (err !== null) {
+            console.error(err);
+          }
+        });
+    }
+  };
+
+  const addUserStarsListener = (channelId, userId) => {
+    usersRef
+      .child(userId)
+      .child("starred")
+      .once("value")
+      .then(data => {
+        if (data.val() !== null) {
+          const channelIds = Object.keys(data.val());
+          const prevStarred = channelIds.includes(channelId);
+          setIsChannelStarred(prevStarred);
+        }
+      });
   };
 
   const addMessageListener = channelId => {
@@ -63,6 +130,11 @@ export default function Messages() {
       setMessagesLoading(false);
       countUniqueUsers(loadedMessagesClone);
     });
+  };
+
+  const removeUserStarsListeners = () => {
+    setIsChannelStarred(false);
+    usersRef.off();
   };
 
   const removeMessageListeners = () => {
@@ -130,6 +202,8 @@ export default function Messages() {
         numUniqueUsers={numUniqueUsers}
         channelName={displayChannelName(state.channel.currentChannel)}
         isPrivateChannel={state.channel.isPrivateChannel}
+        handleStar={handleStar}
+        isChannelStarred={isChannelStarred}
       />
 
       <Segment>
