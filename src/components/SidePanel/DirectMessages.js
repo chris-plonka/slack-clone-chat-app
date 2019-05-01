@@ -10,6 +10,7 @@ export default function DirectMessages() {
   const latestUsers = useRef(users);
   const firstLoad = useRef(true);
   const [presenceUsers, setPresenceUsers] = useState([]);
+  const [activeChannel, setActiveChannel] = useState("");
   const [usersRef] = useState(firebase.database().ref("users"));
   const [connectedRef] = useState(firebase.database().ref(".info/connected"));
   const [presenceRef] = useState(firebase.database().ref("presence"));
@@ -148,6 +149,7 @@ export default function DirectMessages() {
     };
     dispatch(setCurrentChannel(channelData));
     dispatch(setPrivateChannel(true));
+    setActiveChannel(user.uid);
   };
   const getChannelId = userId => {
     const currentUserId = state.user.currentUser.uid;
@@ -168,6 +170,7 @@ export default function DirectMessages() {
       {users.map(user => (
         <Menu.Item
           key={user.uid}
+          active={user.uid === activeChannel}
           onClick={() => changeChannel(user)}
           style={{ ioacity: 0.7, fontStyle: "italic" }}
         >
