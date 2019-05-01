@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useContext,
-  useEffect,
-  useRef,
-  Fragment
-} from "react";
+import React, { useState, useContext, useEffect, Fragment } from "react";
 import { useInput } from "../../customHooks/useInput";
 import { useMutable } from "../../customHooks/useMutable";
 import firebase from "../../firebase";
