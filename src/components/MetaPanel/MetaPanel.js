@@ -1,10 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
 import Store from "../../Store";
-import { Header, Segment, Accordion, Icon } from "semantic-ui-react";
+import firebase from "../../firebase";
+import { Header, Segment, Accordion, Icon, Image } from "semantic-ui-react";
 
 export default function MetaPanel() {
   const { state } = useContext(Store);
   const [activeIndex, setActiveIndex] = useState(0);
+  const channel = state.channel.currentChannel;
+  const isPrivateChannel = state.channel.isPrivateChannel;
 
   const handleActiveIndexClick = (event, titleProps) => {
     const { index } = titleProps;
@@ -12,12 +15,12 @@ export default function MetaPanel() {
     setActiveIndex(newIndex);
   };
 
-  if (state.channel.isPrivateChannel) return null;
+  if (isPrivateChannel) return null;
 
   return (
-    <Segment>
+    <Segment loading={!channel}>
       <Header as="h3" attached="top">
-        About # Channel
+        About # {channel && channel.name}
       </Header>
       <Accordion styled attached="true">
         <Accordion.Title
@@ -30,7 +33,7 @@ export default function MetaPanel() {
           Channel Details
         </Accordion.Title>
         <Accordion.Content active={activeIndex === 0}>
-          details
+          {channel && channel.details}
         </Accordion.Content>
 
         <Accordion.Title
@@ -56,7 +59,10 @@ export default function MetaPanel() {
           Created By
         </Accordion.Title>
         <Accordion.Content active={activeIndex === 2}>
-          creator
+          <Header as="h3">
+            <Image circular src={channel && channel.createdBy.avatar} />
+            {channel && channel.createdBy.name}
+          </Header>
         </Accordion.Content>
       </Accordion>
     </Segment>
