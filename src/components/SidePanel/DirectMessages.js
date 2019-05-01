@@ -29,7 +29,7 @@ export default function DirectMessages() {
   }, [state.user.currentUser]);
 
   useEffect(() => {
-    console.log("users updated");
+    console.log("users updated", users);
     console.log("firstLoad", firstLoad.current);
 
     if (

@@ -52,6 +52,7 @@ export default function Messages() {
     }
 
     return () => {
+      //console.log("clean up", user, channel);
       removeListeners();
     };
   }, [state.user.currentUser, state.channel.currentChannel]);
@@ -134,7 +135,7 @@ export default function Messages() {
 
   const removeUserStarsListeners = () => {
     setIsChannelStarred(false);
-    usersRef.off();
+    //usersRef.off();
   };
 
   const removeMessageListeners = () => {
