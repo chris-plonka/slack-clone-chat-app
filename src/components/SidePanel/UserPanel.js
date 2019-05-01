@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef } from "react";
+import AvatarEditor from "react-avatar-editor";
 import firebase from "../../firebase";
 import Store from "../../Store";
 import {
@@ -14,7 +15,33 @@ import {
 
 export default function UserPanel() {
   const { state } = useContext(Store);
+  const avatarEditor = useRef(null);
+  const user = state.user.currentUser;
   const [modal, setModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [croppedImage, setCroppedImage] = useState("");
+  const [blob, setBlob] = useState("");
+
+  const handleChangeImage = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    if (file) {
+      reader.readAsDataURL(file);
+      reader.addEventListener("load", () => {
+        setPreviewImage(reader.result);
+      });
+    }
+  };
+
+  const handleCropImage = () => {
+    if (avatarEditor) {
+      avatarEditor.current.getImageScaledToCanvas().toBlob(blob => {
+        let imageUrl = URL.createObjectURL(blob);
+        setCroppedImage(imageUrl);
+        setBlob(blob);
+      });
+    }
+  };
 
   const handleSignout = () => {
     firebase
@@ -29,7 +56,7 @@ export default function UserPanel() {
       key: "user",
       text: (
         <span>
-          Signed in as <strong>{state.user.currentUser.displayName}</strong>
+          Signed in as <strong>{user.displayName}</strong>
         </span>
       ),
       disabled: true
@@ -66,12 +93,8 @@ export default function UserPanel() {
             <Dropdown
               trigger={
                 <span>
-                  <Image
-                    src={state.user.currentUser.photoURL}
-                    spaced="right"
-                    avatar
-                  />
-                  {state.user.currentUser.displayName}
+                  <Image src={user.photoURL} spaced="right" avatar />
+                  {user.displayName}
                 </span>
               }
               options={dropdownOptions()}
@@ -83,22 +106,48 @@ export default function UserPanel() {
         <Modal basic open={modal} onClose={closeModal}>
           <Modal.Header>Change Avatar</Modal.Header>
           <Modal.Content>
-            <Input fluid type="file" label="New Avatar" name="previewImage" />
+            <Input
+              onChange={handleChangeImage}
+              fluid
+              type="file"
+              label="New Avatar"
+              name="previewImage"
+            />
             <Grid centered stackable columns={2}>
               <Grid.Row centered>
                 <Grid.Column className="ui center aligned grid">
-                  {/* Image Preview */}
+                  {previewImage && (
+                    <AvatarEditor
+                      ref={node => (avatarEditor.current = node)}
+                      image={previewImage}
+                      width={120}
+                      height={120}
+                      border={50}
+                      scale={1.2}
+                    />
+                  )}
                 </Grid.Column>
-                <Grid.Column>{/* Cropped Image Preview */}</Grid.Column>
+                <Grid.Column>
+                  {croppedImage && (
+                    <Image
+                      style={{ margin: "3.5em auto" }}
+                      width={100}
+                      height={100}
+                      src={croppedImage}
+                    />
+                  )}
+                </Grid.Column>
               </Grid.Row>
             </Grid>
           </Modal.Content>
 
           <Modal.Actions>
-            <Button color="green" inverted>
-              <Icon name="save" /> Change Avatar
-            </Button>
-            <Button color="green" inverted>
+            {croppedImage && (
+              <Button color="green" inverted>
+                <Icon name="save" /> Change Avatar
+              </Button>
+            )}
+            <Button color="green" inverted onClick={handleCropImage}>
               <Icon name="image" /> Preview
             </Button>
             <Button color="red" inverted onClick={closeModal}>
