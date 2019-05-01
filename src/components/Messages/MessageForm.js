@@ -7,7 +7,7 @@ import { Segment, Input, Button } from "semantic-ui-react";
 import FileModal from "./FileModal";
 import ProgressBar from "./ProgressBar";
 
-export default function MessageForm({ messagesRef }) {
+export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   const { state } = useContext(Store);
   const inputMessage = useRef(null);
   const { value: message, bind: bindMessage, reset: resetMessage } = useInput(
@@ -81,15 +81,23 @@ export default function MessageForm({ messagesRef }) {
     setModal(false);
   };
 
+  const getPath = () => {
+    if (isPrivateChannel) {
+      return `chat/private-${state.channel.currentChannel.id}`;
+    } else {
+      return "chat/public";
+    }
+  };
+
   const uploadFile = (file, metadata) => {
     const pathToUpload = state.channel.currentChannel.id;
-    const filePath = `chat/public/${uuidv4()}`;
+    const filePath = `${getPath()}/${uuidv4()}`;
 
     setUploadState("uploading");
     setUploadTask({
       task: storageRef.child(filePath).put(file, metadata),
       pathToUpload,
-      ref: messagesRef
+      ref: getMessagesRef()
     });
   };
 
@@ -116,7 +124,7 @@ export default function MessageForm({ messagesRef }) {
     const { channel } = state;
     if (message && channel.currentChannel) {
       setLoading(true);
-      messagesRef
+      getMessagesRef()
         .child(channel.currentChannel.id)
         .push()
         .set(createMessage())

@@ -10,6 +10,9 @@ import Message from "./Message";
 export default function Messages() {
   const { state } = useContext(Store);
   const [messagesRef] = useState(firebase.database().ref("messages"));
+  const [privateMessagesRef] = useState(
+    firebase.database().ref("privateMessages")
+  );
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 
@@ -43,9 +46,15 @@ export default function Messages() {
     removeMessageListeners();
   };
 
+  const getMessagesRef = () => {
+    const isPrivateChannel = state.channel.isPrivateChannel;
+    return isPrivateChannel ? privateMessagesRef : messagesRef;
+  };
+
   const addMessageListener = channelId => {
     let loadedMessages = [];
-    messagesRef.child(channelId).on("child_added", snap => {
+    let ref = getMessagesRef();
+    ref.child(channelId).on("child_added", snap => {
       // mutates the array, but won't trigger a render
       loadedMessages.push(snap.val());
       //creates a new array, which should trigger a render
@@ -120,6 +129,7 @@ export default function Messages() {
         handleSearchChange={handleSearchChange}
         numUniqueUsers={numUniqueUsers}
         channelName={displayChannelName(state.channel.currentChannel)}
+        isPrivateChannel={state.channel.isPrivateChannel}
       />
 
       <Segment>
@@ -130,7 +140,10 @@ export default function Messages() {
         </Comment.Group>
       </Segment>
 
-      <MessageForm messagesRef={messagesRef} />
+      <MessageForm
+        getMessagesRef={getMessagesRef}
+        isPrivateChannel={state.channel.isPrivateChannel}
+      />
     </Fragment>
   );
 }
