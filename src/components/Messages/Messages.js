@@ -14,6 +14,7 @@ import { Segment, Comment } from "semantic-ui-react";
 import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from "./Message";
+import Typing from "./Typing";
 
 export default function Messages() {
   const { state, dispatch } = useContext(Store);
@@ -231,6 +232,10 @@ export default function Messages() {
           {searchTerm
             ? displayMessages(searchResults)
             : displayMessages(messages)}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span className="user__typing">users is typing</span>
+            <Typing />
+          </div>
         </Comment.Group>
       </Segment>
 
