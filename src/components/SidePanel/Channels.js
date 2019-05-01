@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, Fragment } from "react";
 import { useInput } from "../../customHooks/useInput";
 import firebase from "../../firebase";
 import Store from "../../Store";
-import { setCurrentChannel } from "../../action";
+import { setCurrentChannel, setPrivateChannel } from "../../action";
 import { Menu, Icon, Modal, Form, Input, Button } from "semantic-ui-react";
 
 export default function Channels() {
@@ -55,6 +55,7 @@ export default function Channels() {
   const changeChannel = channel => {
     setActiveChannel(channel.id);
     dispatch(setCurrentChannel(channel));
+    dispatch(setPrivateChannel(false));
   };
 
   const setFirstChannel = () => {
