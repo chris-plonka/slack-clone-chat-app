@@ -108,7 +108,10 @@ export default function Messages() {
     setNumUniqueUsers(numUniqueUsers);
   };
 
-  const displayChannelName = channel => (channel ? `#${channel.name}` : "");
+  const displayChannelName = channel => {
+    const isPrivateChannel = state.channel.isPrivateChannel;
+    return channel ? `${isPrivateChannel ? "@" : "#"}${channel.name}` : "";
+  };
 
   return (
     <Fragment>
