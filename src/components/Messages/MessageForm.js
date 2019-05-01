@@ -165,7 +165,10 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
     }
   };
 
-  const handleKeyDown = () => {
+  const handleKeyDown = event => {
+    if (event.ctrlKey && event.keyCode === 13) {
+      sendMessage();
+    }
     if (message) {
       typingRef
         .child(channel.id)
