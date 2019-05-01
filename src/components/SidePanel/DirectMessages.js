@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Store from "../../Store";
 import firebase from "../../firebase";
+import { useMutable } from "../../customHooks/useMutable";
 import { setCurrentChannel, setPrivateChannel } from "../../action";
 import { Menu, Icon } from "semantic-ui-react";
 
 export default function DirectMessages() {
   const { state, dispatch } = useContext(Store);
-  const [users, setUsers] = useState([]);
-  const latestUsers = useRef(users);
+  const { ref: latestUsers, val: users, set: setUsers } = useMutable([]);
   const firstLoad = useRef(true);
   const [presenceUsers, setPresenceUsers] = useState([]);
   const [activeChannel, setActiveChannel] = useState("");
@@ -31,9 +31,6 @@ export default function DirectMessages() {
   useEffect(() => {
     console.log("users updated");
     console.log("firstLoad", firstLoad.current);
-    if (users.length > 0) {
-      latestUsers.current = users;
-    }
 
     if (
       presenceUsers.length > 0 &&

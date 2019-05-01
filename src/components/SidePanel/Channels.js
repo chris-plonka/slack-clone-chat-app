@@ -1,9 +1,24 @@
-import React, { useState, useContext, useEffect, Fragment } from "react";
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  Fragment
+} from "react";
 import { useInput } from "../../customHooks/useInput";
+import { useMutable } from "../../customHooks/useMutable";
 import firebase from "../../firebase";
 import Store from "../../Store";
 import { setCurrentChannel, setPrivateChannel } from "../../action";
-import { Menu, Icon, Modal, Form, Input, Button } from "semantic-ui-react";
+import {
+  Menu,
+  Icon,
+  Modal,
+  Form,
+  Input,
+  Button,
+  Label
+} from "semantic-ui-react";
 
 export default function Channels() {
   const { state, dispatch } = useContext(Store);
@@ -17,6 +32,13 @@ export default function Channels() {
     bind: bindChannelDetails,
     reset: resetChannelDetails
   } = useInput("");
+  const { ref: channelRef, val: channel, set: setChannel } = useMutable(null);
+  const {
+    ref: notificationsRef,
+    val: notifications,
+    set: setNotifications
+  } = useMutable([]);
+
   const [channels, setChannels] = useState([]);
   const [modal, setModal] = useState(false);
   const [errors, setErrors] = useState([]);
@@ -24,6 +46,7 @@ export default function Channels() {
   const [firstLoad, setFirstLoad] = useState(true);
   const [activeChannel, setActiveChannel] = useState("");
   const [channelsRef] = useState(firebase.database().ref("channels"));
+  const [messagesRef] = useState(firebase.database().ref("messages"));
 
   useEffect(() => {
     addListeners();
@@ -49,13 +72,80 @@ export default function Channels() {
       //creates a new array, which should trigger a render
       const loadedChannelsClone = [...loadedChannels];
       setChannels(loadedChannelsClone);
+      addNotificationListener(snap.key);
     });
+  };
+
+  const addNotificationListener = channelId => {
+    messagesRef.child(channelId).on("value", snap => {
+      if (channelRef.current) {
+        handleNotifications(
+          channelId,
+          channelRef.current.id,
+          notificationsRef.current,
+          snap
+        );
+      }
+    });
+  };
+
+  const handleNotifications = (
+    channelId,
+    currentChannelId,
+    notifications,
+    snap
+  ) => {
+    //console.log(channelId, currentChannelId, notifications, snap);
+
+    let lastTotal = 0;
+
+    let index = notifications.findIndex(
+      notification => notification.id === channelId
+    );
+    if (index !== -1) {
+      if (channelId !== currentChannelId) {
+        lastTotal = notifications[index].total;
+        if (snap.numChildren() - lastTotal > 0) {
+          notifications[index].count = snap.numChildren() - lastTotal;
+        }
+      }
+      notifications[index].lastKnownTotal = snap.numChildren();
+      const notificationsLocal = [...notifications];
+      setNotifications(notificationsLocal);
+    } else {
+      const notification = {
+        id: channelId,
+        total: snap.numChildren(),
+        lastKnownTotal: snap.numChildren(),
+        count: 0
+      };
+      const notificationsLocal = [...notifications].concat(notification);
+      setNotifications(notificationsLocal);
+    }
   };
 
   const changeChannel = channel => {
     setActiveChannel(channel.id);
+    clearNotifications();
     dispatch(setCurrentChannel(channel));
     dispatch(setPrivateChannel(false));
+    setChannel(channel);
+  };
+
+  const clearNotifications = () => {
+    const currentNotifications = notificationsRef.current;
+    const currentChannel = channelRef.current;
+    let index = currentNotifications.findIndex(
+      notification => notification.id === currentChannel.id
+    );
+
+    if (index !== -1) {
+      const notificationsLocal = [...currentNotifications];
+      notificationsLocal[index].total =
+        currentNotifications[index].lastKnownTotal;
+      notificationsLocal[index].count = 0;
+      setNotifications(notificationsLocal);
+    }
   };
 
   const setFirstChannel = () => {
@@ -64,6 +154,19 @@ export default function Channels() {
       changeChannel(firstChannel);
       setFirstLoad(false);
     }
+  };
+
+  const getNotificationCount = channel => {
+    let count = 0;
+
+    const currentNotifications = notificationsRef.current;
+    currentNotifications.forEach(notification => {
+      if (notification.id === channel.id) {
+        count = notification.count;
+      }
+    });
+
+    if (count > 0) return count;
   };
 
   const displayChannels = channels => {
@@ -77,6 +180,9 @@ export default function Channels() {
           style={{ opacity: 0.7 }}
           active={channel.id === activeChannel}
         >
+          {getNotificationCount(channel) && (
+            <Label color="red">{getNotificationCount(channel)}</Label>
+          )}
           # {channel.name}
         </Menu.Item>
       ))
