@@ -1,12 +1,62 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import firebase from "../../firebase";
 import Store from "../../Store";
+import { useMutable } from "../../customHooks/useMutable";
 import { setCurrentChannel, setPrivateChannel } from "../../action";
 import { Menu, Icon } from "semantic-ui-react";
 
 export default function Starred() {
-  const { dispatch } = useContext(Store);
-  const [starredChannels, setStarredChannels] = useState([]);
+  const { state, dispatch } = useContext(Store);
+  const {
+    ref: starredChannelsRef,
+    val: starredChannels,
+    set: setStarredChannels
+  } = useMutable([]);
   const [activeChannel, setActiveChannel] = useState("");
+  const [usersRef] = useState(firebase.database().ref("users"));
+
+  useEffect(() => {
+    const user = state.user.currentUser;
+    const channel = state.channel.currentChannel;
+
+    if (user) {
+      addListeners(user.uid);
+    }
+
+    return () => {
+      removeListeners();
+    };
+  }, []);
+
+  const addListeners = userId => {
+    usersRef
+      .child(userId)
+      .child("starred")
+      .on("child_added", snap => {
+        const starredChannel = { id: snap.key, ...snap.val() };
+        const starredChannelsLocal = [...starredChannelsRef.current].concat(
+          starredChannel
+        );
+        setStarredChannels(starredChannelsLocal);
+      });
+
+    usersRef
+      .child(userId)
+      .child("starred")
+      .on("child_removed", snap => {
+        const channelToRemove = { id: snap.key, ...snap.val() };
+        const filteredChannels = [...starredChannelsRef.current].filter(
+          channel => {
+            return channel.id !== channelToRemove.id;
+          }
+        );
+        setStarredChannels(filteredChannels);
+      });
+  };
+  const removeListeners = () => {
+    setStarredChannels([]);
+    usersRef.off();
+  };
 
   const changeChannel = channel => {
     setActiveChannel(channel.id);
