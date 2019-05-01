@@ -19,6 +19,7 @@ import Typing from "./Typing";
 export default function Messages() {
   const { state, dispatch } = useContext(Store);
   const isClick = useRef(false);
+  const messagesEnd = useRef(null);
   const [connectedRef] = useState(firebase.database().ref(".info/connected"));
   const [usersRef] = useState(firebase.database().ref("users"));
   const [typingRef] = useState(firebase.database().ref("typing"));
@@ -40,6 +41,12 @@ export default function Messages() {
     val: isChannelStarred,
     set: setIsChannelStarred
   } = useMutable(false);
+
+  useEffect(() => {
+    if (messagesEnd.current) {
+      scrollToBottom();
+    }
+  });
 
   useEffect(() => {
     if (state.channel.currentChannel && isClick.current) {
@@ -75,6 +82,10 @@ export default function Messages() {
     removeMessageListeners();
     removeUserStarsListeners();
     removeTypingListeners();
+  };
+
+  const scrollToBottom = () => {
+    messagesEnd.current.scrollIntoView({ behavor: "smooth" });
   };
 
   const getMessagesRef = () => {
@@ -291,6 +302,7 @@ export default function Messages() {
             ? displayMessages(searchResults)
             : displayMessages(messages)}
           {displayTypingUsers(typingUsers)}
+          <div ref={messagesEnd} />
         </Comment.Group>
       </Segment>
 
