@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import Store from "../../Store";
-import firebase from "../../firebase";
 import {
   Header,
   Segment,
