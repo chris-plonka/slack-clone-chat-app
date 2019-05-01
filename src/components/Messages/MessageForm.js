@@ -9,6 +9,8 @@ import ProgressBar from "./ProgressBar";
 
 export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   const { state } = useContext(Store);
+  const channel = state.channel.currentChannel;
+  const user = state.user.currentUser;
   const inputMessage = useRef(null);
   const { value: message, bind: bindMessage, reset: resetMessage } = useInput(
     ""
@@ -20,6 +22,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   const [uploadTask, setUploadTask] = useState(null);
   const [precentUploaded, setPrecentUploaded] = useState(0);
   const [storageRef] = useState(firebase.storage().ref());
+  const [typingRef] = useState(firebase.database().ref("typing"));
 
   const handleUploadError = err => {
     console.error(err);
@@ -83,14 +86,14 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
 
   const getPath = () => {
     if (isPrivateChannel) {
-      return `chat/private-${state.channel.currentChannel.id}`;
+      return `chat/private-${channel.id}`;
     } else {
       return "chat/public";
     }
   };
 
   const uploadFile = (file, metadata) => {
-    const pathToUpload = state.channel.currentChannel.id;
+    const pathToUpload = channel.id;
     const filePath = `${getPath()}/${uuidv4()}`;
 
     setUploadState("uploading");
@@ -102,13 +105,12 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   };
 
   const createMessage = (fileUrl = null) => {
-    const { user } = state;
     const messageObj = {
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       user: {
-        id: user.currentUser.uid,
-        name: user.currentUser.displayName,
-        avatar: user.currentUser.photoURL
+        id: user.uid,
+        name: user.displayName,
+        avatar: user.photoURL
       }
     };
     if (fileUrl !== null) {
@@ -121,17 +123,20 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   };
 
   const sendMessage = () => {
-    const { channel } = state;
-    if (message && channel.currentChannel) {
+    if (message && channel) {
       setLoading(true);
       getMessagesRef()
-        .child(channel.currentChannel.id)
+        .child(channel.id)
         .push()
         .set(createMessage())
         .then(() => {
           setLoading(false);
           resetMessage();
           setErrors([]);
+          typingRef
+            .child(channel.id)
+            .child(user.uid)
+            .remove();
           inputMessage.current.focus();
         })
         .catch(err => {
@@ -152,6 +157,20 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
     }
   };
 
+  const handleKeyDown = () => {
+    if (message) {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .set(user.displayName);
+    } else {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .remove();
+    }
+  };
+
   return (
     <Segment className="message__form">
       <Input
@@ -159,6 +178,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
         name="message"
         ref={inputMessage}
         {...bindMessage}
+        onKeyDown={handleKeyDown}
         className={handleErrors("message")}
         style={{ marginBottom: "0.7em" }}
         label={<Button icon={"add"} />}

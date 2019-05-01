@@ -41,6 +41,7 @@ export default function Channels() {
   const [activeChannel, setActiveChannel] = useState("");
   const [channelsRef] = useState(firebase.database().ref("channels"));
   const [messagesRef] = useState(firebase.database().ref("messages"));
+  const [typingRef] = useState(firebase.database().ref("typing"));
 
   useEffect(() => {
     addListeners();
@@ -120,10 +121,20 @@ export default function Channels() {
 
   const changeChannel = channel => {
     setActiveChannel(channel.id);
+    removeTyping();
     clearNotifications();
     dispatch(setCurrentChannel(channel));
     dispatch(setPrivateChannel(false));
     setChannel(channel);
+  };
+
+  const removeTyping = () => {
+    if (state.channel.currentChannel && state.user.currentUser) {
+      typingRef
+        .child(state.channel.currentChannel.id)
+        .child(state.user.currentUser.uid)
+        .remove();
+    }
   };
 
   const clearNotifications = () => {
