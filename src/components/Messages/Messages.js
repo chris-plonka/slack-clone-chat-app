@@ -15,6 +15,8 @@ import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from "./Message";
 import Typing from "./Typing";
+import Skeleton from "./Skeleton";
+import { min } from "moment";
 
 export default function Messages() {
   const { state, dispatch } = useContext(Store);
@@ -284,6 +286,15 @@ export default function Messages() {
       </div>
     ));
 
+  const displayMessageSkeletion = loading =>
+    loading ? (
+      <Fragment>
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i} />
+        ))}
+      </Fragment>
+    ) : null;
+
   return (
     <Fragment>
       <MessagesHeader
@@ -298,6 +309,7 @@ export default function Messages() {
 
       <Segment>
         <Comment.Group className="messages">
+          {displayMessageSkeletion(messagesLoading)}
           {searchTerm
             ? displayMessages(searchResults)
             : displayMessages(messages)}
