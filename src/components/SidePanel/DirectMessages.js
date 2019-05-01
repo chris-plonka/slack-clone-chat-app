@@ -7,22 +7,28 @@ export default function DirectMessages() {
   const { state } = useContext(Store);
   const [users, setUsers] = useState([]);
   const latestUsers = useRef(users);
+  const firstLoad = useRef(true);
   const [presenceUsers, setPresenceUsers] = useState([]);
   const [usersRef] = useState(firebase.database().ref("users"));
   const [connectedRef] = useState(firebase.database().ref(".info/connected"));
   const [presenceRef] = useState(firebase.database().ref("presence"));
 
   useEffect(() => {
+    console.log("currentUser updated");
     if (state.user.currentUser) {
+      console.log("addListeners");
       addListeners(state.user.currentUser.uid);
     }
     // Clean up the Listeners
     return () => {
+      console.log("clean up Listeners");
       removeListeners();
     };
   }, [state.user.currentUser]);
 
   useEffect(() => {
+    console.log("users updated");
+    console.log("firstLoad", firstLoad.current);
     if (users.length > 0) {
       latestUsers.current = users;
     }
@@ -30,16 +36,19 @@ export default function DirectMessages() {
     if (
       presenceUsers.length > 0 &&
       users.length > 0 &&
-      users.length !== latestUsers.current.length
+      users.length !== latestUsers.current.length &&
+      firstLoad.current
     ) {
       updateStatusToUser();
+      firstLoad.current = false;
     }
-    console.log("users updated");
   }, [users]);
 
   useEffect(() => {
+    console.log("presenceUsers updated");
     if (presenceUsers.length > 0 && users.length > 0) {
       updateStatusToUser();
+      firstLoad.current = false;
     }
   }, [presenceUsers]);
 
