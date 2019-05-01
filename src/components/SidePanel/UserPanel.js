@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import AvatarEditor from "react-avatar-editor";
 import firebase from "../../firebase";
 import Store from "../../Store";
@@ -20,7 +20,60 @@ export default function UserPanel() {
   const [modal, setModal] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [croppedImage, setCroppedImage] = useState("");
+  const [uploadedCroppedImage, setupLoadedCroppedImage] = useState("");
   const [blob, setBlob] = useState("");
+  const [storageRef] = useState(firebase.storage().ref());
+  const [userRef] = useState(firebase.auth().currentUser);
+  const [usersRef] = useState(firebase.database().ref("users"));
+
+  useEffect(() => {
+    if (uploadedCroppedImage) {
+      changeAvatar(uploadedCroppedImage);
+    }
+  }, [uploadedCroppedImage]);
+
+  const clearImage = () => {
+    setPreviewImage("");
+    setCroppedImage("");
+    setupLoadedCroppedImage("");
+    setBlob("");
+  };
+
+  const changeAvatar = uploadedCroppedImage => {
+    userRef
+      .updateProfile({
+        photoURL: uploadedCroppedImage
+      })
+      .then(() => {
+        console.log("PhotoURL updated");
+        closeModal();
+      })
+      .catch(err => console.error(err));
+
+    usersRef
+      .child(userRef.uid)
+      .update({
+        avatar: uploadedCroppedImage
+      })
+      .then(() => {
+        console.log("User Avatar updated");
+      })
+      .catch(err => console.error(err));
+  };
+
+  const uploadCroppedImage = () => {
+    const metadata = { contentType: "image/jpeg" };
+    storageRef
+      .child(`avatars/user-${userRef.uid}`)
+      .put(blob, metadata)
+      .then(snap => {
+        snap.ref.getDownloadURL().then(downloadUrl => {
+          console.log(downloadUrl);
+          setupLoadedCroppedImage(downloadUrl);
+        });
+      })
+      .catch(err => console.error(err));
+  };
 
   const handleChangeImage = e => {
     const file = e.target.files[0];
@@ -34,7 +87,7 @@ export default function UserPanel() {
   };
 
   const handleCropImage = () => {
-    if (avatarEditor) {
+    if (avatarEditor && previewImage) {
       avatarEditor.current.getImageScaledToCanvas().toBlob(blob => {
         let imageUrl = URL.createObjectURL(blob);
         setCroppedImage(imageUrl);
@@ -73,6 +126,7 @@ export default function UserPanel() {
 
   const closeModal = () => {
     setModal(false);
+    clearImage();
   };
 
   const openModal = () => {
@@ -143,7 +197,7 @@ export default function UserPanel() {
 
           <Modal.Actions>
             {croppedImage && (
-              <Button color="green" inverted>
+              <Button color="green" inverted onClick={uploadCroppedImage}>
                 <Icon name="save" /> Change Avatar
               </Button>
             )}
