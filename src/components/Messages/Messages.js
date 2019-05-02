@@ -54,7 +54,6 @@ export default function Messages() {
     return () => {
       console.log("clean up");
       removeListeners();
-      clearState();
       connectedRef.off();
     };
   }, []);
@@ -84,6 +83,7 @@ export default function Messages() {
     listeners.forEach(listener => {
       listener.ref.child(listener.id).off(listener.event);
     });
+    clearState();
   };
 
   const addToListeners = (id, ref, event) => {
