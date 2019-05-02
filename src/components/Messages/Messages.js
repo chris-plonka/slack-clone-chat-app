@@ -84,10 +84,12 @@ export default function Messages() {
       listener.ref.child(listener.id).off(listener.event);
     });
     clearState();
+    setListeners([]);
+    console.log("removeListeners", listeners);
   };
 
   const addToListeners = (id, ref, event, refName) => {
-    //console.log("addToListeners", id, event, refName, listeners);
+    console.log("addToListeners", id, event, refName, listeners);
     const index = listeners.findIndex(listener => {
       return (
         listener.id === id && listener.ref === ref && listener.event === event
@@ -101,11 +103,9 @@ export default function Messages() {
 
     if (index === -1 && indexCheck === -1) {
       const newListener = { id, ref, event };
-      const listenersLocal = [...listenersCheck, ...listeners].concat(
-        newListener
-      );
+      const listenersLocal = [...listenersCheck].concat(newListener);
       listenersCheck.push(newListener);
-      //console.log("listenersCheck", listenersCheck);
+      console.log("listenersCheck", listenersCheck);
       setListeners(listenersLocal);
     }
   };
