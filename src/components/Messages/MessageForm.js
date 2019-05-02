@@ -115,7 +115,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
     setUploadTask({
       task: storageRef.child(filePath).put(file, metadata),
       pathToUpload,
-      ref: getMessagesRef()
+      ref: getMessagesRef().ref
     });
   };
 
@@ -141,7 +141,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
     if (message && channel) {
       setLoading(true);
       getMessagesRef()
-        .child(channel.id)
+        .ref.child(channel.id)
         .push()
         .set(createMessage())
         .then(() => {

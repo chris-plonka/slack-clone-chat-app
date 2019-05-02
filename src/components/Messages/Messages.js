@@ -30,19 +30,19 @@ export default function Messages() {
   );
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
-
   const [numUniqueUsers, setNumUniqueUsers] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
-  const [listeners, setListeners] = useState([]);
-
   const {
     ref: isChannelStarredRef,
     val: isChannelStarred,
     set: setIsChannelStarred
   } = useMutable(false);
+  const [listeners, setListeners] = useState([]);
+
+  const listenersCheck = [];
 
   useEffect(() => {
     if (messagesEnd.current) {
@@ -86,16 +86,26 @@ export default function Messages() {
     clearState();
   };
 
-  const addToListeners = (id, ref, event) => {
+  const addToListeners = (id, ref, event, refName) => {
+    //console.log("addToListeners", id, event, refName, listeners);
     const index = listeners.findIndex(listener => {
       return (
         listener.id === id && listener.ref === ref && listener.event === event
       );
     });
+    const indexCheck = listenersCheck.findIndex(listener => {
+      return (
+        listener.id === id && listener.ref === ref && listener.event === event
+      );
+    });
 
-    if (index === -1) {
+    if (index === -1 && indexCheck === -1) {
       const newListener = { id, ref, event };
-      const listenersLocal = [...listeners].concat(newListener);
+      const listenersLocal = [...listenersCheck, ...listeners].concat(
+        newListener
+      );
+      listenersCheck.push(newListener);
+      //console.log("listenersCheck", listenersCheck);
       setListeners(listenersLocal);
     }
   };
@@ -130,7 +140,9 @@ export default function Messages() {
 
   const getMessagesRef = () => {
     const isPrivateChannel = state.channel.isPrivateChannel;
-    return isPrivateChannel ? privateMessagesRef : messagesRef;
+    return isPrivateChannel
+      ? { ref: privateMessagesRef, name: "privateMessagesRef" }
+      : { ref: messagesRef, name: "messagesRef" };
   };
 
   const handleStar = () => {
@@ -190,7 +202,7 @@ export default function Messages() {
           setTypingUsers([...typingUsersLocal]);
         }
       });
-      addToListeners(channelId, typingRef, "child_added");
+      addToListeners(channelId, typingRef, "child_added", "typingRef");
       typingRef.child(channelId).on("child_removed", snap => {
         const index = typingUsersLocal.findIndex(user => user.id === snap.key);
         if (index !== -1) {
@@ -200,7 +212,7 @@ export default function Messages() {
           setTypingUsers([...typingUsersLocal]);
         }
       });
-      addToListeners(channelId, typingRef, "child_removed");
+      addToListeners(channelId, typingRef, "child_removed", "typingRef");
 
       connectedRef.on("value", snap => {
         if (snap.val() === true) {
@@ -220,7 +232,7 @@ export default function Messages() {
 
   const addMessageListener = channelId => {
     let loadedMessages = [];
-    let ref = getMessagesRef();
+    let { ref, name } = getMessagesRef();
     ref.child(channelId).on("child_added", snap => {
       // mutates the array, but won't trigger a render
       loadedMessages.push(snap.val());
@@ -231,7 +243,7 @@ export default function Messages() {
       countUniqueUsers(loadedMessagesClone);
       countUserPosts(loadedMessagesClone);
     });
-    addToListeners(channelId, ref, "child_added");
+    addToListeners(channelId, ref, "child_added", name);
   };
 
   const displayMessages = messages => {
