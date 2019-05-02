@@ -16,7 +16,6 @@ import MessageForm from "./MessageForm";
 import Message from "./Message";
 import Typing from "./Typing";
 import Skeleton from "./Skeleton";
-import { min } from "moment";
 
 export default function Messages() {
   const { state, dispatch } = useContext(Store);
@@ -37,6 +36,7 @@ export default function Messages() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [listeners, setListeners] = useState([]);
 
   const {
     ref: isChannelStarredRef,
@@ -51,6 +51,15 @@ export default function Messages() {
   });
 
   useEffect(() => {
+    return () => {
+      console.log("clean up");
+      removeListeners();
+      clearState();
+      connectedRef.off();
+    };
+  }, []);
+
+  useEffect(() => {
     if (state.channel.currentChannel && isClick.current) {
       starChannel();
     }
@@ -61,29 +70,58 @@ export default function Messages() {
     const channel = state.channel.currentChannel;
 
     if (user && channel) {
+      removeListeners();
       addListeners(channel.id);
       addUserStarsListener(channel.id, user.uid);
     }
-
-    return () => {
-      //console.log("clean up", user, channel);
-      removeListeners();
-    };
   }, [state.user.currentUser, state.channel.currentChannel]);
 
   useEffect(() => {
     handleSearchMessages();
   }, [searchTerm]);
 
+  const removeListeners = () => {
+    listeners.forEach(listener => {
+      listener.ref.child(listener.id).off(listener.event);
+    });
+  };
+
+  const addToListeners = (id, ref, event) => {
+    const index = listeners.findIndex(listener => {
+      return (
+        listener.id === id && listener.ref === ref && listener.event === event
+      );
+    });
+
+    if (index === -1) {
+      const newListener = { id, ref, event };
+      const listenersLocal = [...listeners].concat(newListener);
+      setListeners(listenersLocal);
+    }
+  };
+
   const addListeners = channelId => {
     addMessageListener(channelId);
     addTypingListener(channelId);
   };
 
-  const removeListeners = () => {
-    removeMessageListeners();
-    removeUserStarsListeners();
-    removeTypingListeners();
+  const clearState = () => {
+    clearMessages();
+    clearUserStars();
+    clearTyping();
+  };
+  const clearUserStars = () => {
+    setIsChannelStarred(false);
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+    countUniqueUsers([]);
+    countUserPosts([]);
+  };
+
+  const clearTyping = () => {
+    setTypingUsers([]);
   };
 
   const scrollToBottom = () => {
@@ -152,6 +190,7 @@ export default function Messages() {
           setTypingUsers([...typingUsersLocal]);
         }
       });
+      addToListeners(channelId, typingRef, "child_added");
       typingRef.child(channelId).on("child_removed", snap => {
         const index = typingUsersLocal.findIndex(user => user.id === snap.key);
         if (index !== -1) {
@@ -161,6 +200,7 @@ export default function Messages() {
           setTypingUsers([...typingUsersLocal]);
         }
       });
+      addToListeners(channelId, typingRef, "child_removed");
 
       connectedRef.on("value", snap => {
         if (snap.val() === true) {
@@ -191,23 +231,7 @@ export default function Messages() {
       countUniqueUsers(loadedMessagesClone);
       countUserPosts(loadedMessagesClone);
     });
-  };
-
-  const removeUserStarsListeners = () => {
-    setIsChannelStarred(false);
-    //usersRef.off();
-  };
-
-  const removeMessageListeners = () => {
-    setMessages([]);
-    countUniqueUsers([]);
-    countUserPosts([]);
-    messagesRef.off();
-  };
-
-  const removeTypingListeners = () => {
-    setTypingUsers([]);
-    typingRef.off();
+    addToListeners(channelId, ref, "child_added");
   };
 
   const displayMessages = messages => {

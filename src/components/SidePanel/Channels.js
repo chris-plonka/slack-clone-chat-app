@@ -57,6 +57,9 @@ export default function Channels() {
 
   const removeListeners = () => {
     channelsRef.off();
+    channels.forEach(channel => {
+      messagesRef.child(channel.id).off();
+    });
   };
 
   const addListeners = () => {

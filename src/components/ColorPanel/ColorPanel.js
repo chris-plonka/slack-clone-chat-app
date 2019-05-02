@@ -27,7 +27,15 @@ export default function ColorPanel() {
     if (user) {
       addListeners(user.uid);
     }
+    // Clean up the Listeners
+    return () => {
+      removeListeners();
+    };
   }, []);
+
+  const removeListeners = () => {
+    usersRef.child(`${user.uid}/colors`).off();
+  };
 
   const addListeners = userId => {
     let userColors = [];

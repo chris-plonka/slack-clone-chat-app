@@ -16,6 +16,13 @@ export default function DirectMessages() {
   const [presenceRef] = useState(firebase.database().ref("presence"));
 
   useEffect(() => {
+    return () => {
+      console.log("clean up");
+      removeListeners();
+    };
+  }, []);
+
+  useEffect(() => {
     console.log("currentUser updated");
     if (state.user.currentUser) {
       console.log("addListeners");

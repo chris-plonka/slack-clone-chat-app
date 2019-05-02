@@ -65,6 +65,13 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
         }
       );
     }
+    // Clean up the Listeners
+    return () => {
+      if (uploadTask !== null) {
+        uploadTask.cancel();
+        setUploadTask(null);
+      }
+    };
   }, [uploadTask]);
 
   const sendFileMessage = (fileUrl, ref, pathToUpload) => {

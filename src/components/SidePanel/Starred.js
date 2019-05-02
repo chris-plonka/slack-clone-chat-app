@@ -55,7 +55,7 @@ export default function Starred() {
   };
   const removeListeners = () => {
     setStarredChannels([]);
-    usersRef.off();
+    usersRef.child(`${state.user.currentUser.uid}/starred`).off();
   };
 
   const changeChannel = channel => {
