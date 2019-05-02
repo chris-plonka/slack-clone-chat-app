@@ -68,7 +68,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
     // Clean up the Listeners
     return () => {
       if (uploadTask !== null) {
-        uploadTask.cancel();
+        uploadTask.task.cancel();
         setUploadTask(null);
       }
     };
@@ -101,7 +101,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
 
   const getPath = () => {
     if (isPrivateChannel) {
-      return `chat/private-${channel.id}`;
+      return `chat/private/${channel.id}`;
     } else {
       return "chat/public";
     }
