@@ -52,7 +52,7 @@ export default function Messages() {
 
   useEffect(() => {
     return () => {
-      console.log("clean up");
+      //console.log("clean up");
       removeListeners();
       connectedRef.off();
     };
@@ -85,11 +85,11 @@ export default function Messages() {
     });
     clearState();
     setListeners([]);
-    console.log("removeListeners", listeners);
+    //console.log("removeListeners", listeners);
   };
 
   const addToListeners = (id, ref, event, refName) => {
-    console.log("addToListeners", id, event, refName, listeners);
+    //console.log("addToListeners", id, event, refName, listeners);
     const index = listeners.findIndex(listener => {
       return (
         listener.id === id && listener.ref === ref && listener.event === event
@@ -105,7 +105,7 @@ export default function Messages() {
       const newListener = { id, ref, event };
       const listenersLocal = [...listenersCheck].concat(newListener);
       listenersCheck.push(newListener);
-      console.log("listenersCheck", listenersCheck);
+      //console.log("listenersCheck", listenersCheck);
       setListeners(listenersLocal);
     }
   };

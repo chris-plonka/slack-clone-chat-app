@@ -17,27 +17,27 @@ export default function DirectMessages() {
 
   useEffect(() => {
     return () => {
-      console.log("clean up");
+      //console.log("clean up");
       removeListeners();
     };
   }, []);
 
   useEffect(() => {
-    console.log("currentUser updated");
+    //console.log("currentUser updated");
     if (state.user.currentUser) {
-      console.log("addListeners");
+      //console.log("addListeners");
       addListeners(state.user.currentUser.uid);
     }
     // Clean up the Listeners
     return () => {
-      console.log("clean up Listeners");
+      //console.log("clean up Listeners");
       removeListeners();
     };
   }, [state.user.currentUser]);
 
   useEffect(() => {
-    console.log("users updated", users);
-    console.log("firstLoad", firstLoad.current);
+    //console.log("users updated", users);
+    //console.log("firstLoad", firstLoad.current);
 
     if (
       presenceUsers.length > 0 &&
@@ -51,7 +51,7 @@ export default function DirectMessages() {
   }, [users]);
 
   useEffect(() => {
-    console.log("presenceUsers updated");
+    //console.log("presenceUsers updated");
     if (presenceUsers.length > 0 && users.length > 0) {
       updateStatusToUser();
       firstLoad.current = false;
@@ -75,7 +75,7 @@ export default function DirectMessages() {
         loadedUsers.push(user);
         //creates a new array, which should trigger a render
         const loadedUsersClone = [...loadedUsers];
-        console.log("usersRef child_added");
+        //console.log("usersRef child_added");
         setUsers(loadedUsersClone);
       }
     });
@@ -125,7 +125,7 @@ export default function DirectMessages() {
       return acc.concat(user);
     }, []);
     if (updatedUsers.length > 0) {
-      console.log("addStatusToUser");
+      //console.log("addStatusToUser");
       setUsers(updatedUsers);
     }
   };
@@ -139,7 +139,7 @@ export default function DirectMessages() {
       }
       return acc.concat(user);
     }, []);
-    console.log("updateStatusToUser");
+    //console.log("updateStatusToUser");
     setUsers(updatedUsers);
   };
 

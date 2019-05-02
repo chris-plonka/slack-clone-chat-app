@@ -54,7 +54,7 @@ export default function Register() {
     if (password.length < 6 || passwordConfirmation.length < 6) {
       return false;
     } else if (password !== passwordConfirmation) {
-      console.log("password not same as passwordConfirmation");
+      //console.log("password not same as passwordConfirmation");
       return false;
     } else {
       return true;
@@ -110,7 +110,7 @@ export default function Register() {
             .then(() => {
               saveUser(createdUser)
                 .then(() => {
-                  console.log("user saved");
+                  //console.log("user saved");
                   setLoading(false);
                   resetUsername();
                   resetEmail();
@@ -118,19 +118,19 @@ export default function Register() {
                   resetPasswordConfirmation();
                 })
                 .catch(err => {
-                  console.log(err);
+                  console.error(err);
                   setLoading(false);
                   setErrors([err]);
                 });
             })
             .catch(err => {
-              console.log(err);
+              console.error(err);
               setLoading(false);
               setErrors([err]);
             });
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           setLoading(false);
           setErrors([err]);
         });

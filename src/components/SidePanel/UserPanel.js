@@ -45,7 +45,7 @@ export default function UserPanel() {
         photoURL: uploadedCroppedImage
       })
       .then(() => {
-        console.log("PhotoURL updated");
+        //console.log("PhotoURL updated");
         closeModal();
       })
       .catch(err => console.error(err));
@@ -56,7 +56,7 @@ export default function UserPanel() {
         avatar: uploadedCroppedImage
       })
       .then(() => {
-        console.log("User Avatar updated");
+        //console.log("User Avatar updated");
       })
       .catch(err => console.error(err));
   };

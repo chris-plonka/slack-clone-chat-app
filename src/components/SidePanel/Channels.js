@@ -244,7 +244,7 @@ export default function Channels() {
       .update(newChannel)
       .then(() => {
         closeModal();
-        console.log("channel added");
+        //console.log("channel added");
       })
       .catch(err => {
         console.error(err);

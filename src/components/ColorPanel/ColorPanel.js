@@ -41,7 +41,7 @@ export default function ColorPanel() {
     let userColors = [];
     usersRef.child(`${user.uid}/colors`).on("child_added", snap => {
       userColors.unshift(snap.val());
-      console.log(userColors);
+      //console.log(userColors);
       setUserColors(userColors);
     });
   };
@@ -103,7 +103,7 @@ export default function ColorPanel() {
         secondary
       })
       .then(() => {
-        console.log("color saved");
+        //console.log("color saved");
         closeModal();
       })
       .catch(err => console.error(err));

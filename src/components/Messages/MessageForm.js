@@ -54,7 +54,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
           uploadTask.task.snapshot.ref
             .getDownloadURL()
             .then(downloadUrl => {
-              console.log(downloadUrl);
+              //console.log(downloadUrl);
               sendFileMessage(
                 downloadUrl,
                 uploadTask.ref,

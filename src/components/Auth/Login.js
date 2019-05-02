@@ -62,13 +62,13 @@ export default function Login() {
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then(signedUser => {
-          console.log(signedUser);
+          //console.log(signedUser);
           setLoading(false);
           resetEmail();
           resetPassword();
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           setLoading(false);
           setErrors([err]);
         });
