@@ -173,7 +173,7 @@ export default function MessageForm({ getMessagesRef, isPrivateChannel }) {
   };
 
   const handleKeyDown = event => {
-    if (event.ctrlKey && event.keyCode === 13) {
+    if (event.keyCode === 13) {
       sendMessage();
     }
     if (message) {
